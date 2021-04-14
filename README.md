@@ -42,11 +42,11 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
  
  # Virtual CPU and uC
  
- A really virtual implementation of a forth CPU implies in NO generic or specific opcodes of any real CPU into dictionary.
+ A really virtual implementation of a forth CPU implies in NO specific opcodes of any real CPU into dictionary.
  
  No assembler instructions, nor calls, nor jumps, nor returns, not at all.
  
- The forth virtual cpu does opcodes defined by one byte, and executes the code from a indexed table of rotines defined in real assembler for a family of real microprocessors. This may be a bit slow than specific optmized code, but is really portable as just the primitives must be coded in real assembler and all is done, because dicionary is immutable. 
+ The forth virtual cpu does opcodes defined by one byte, and executes the code from a indexed table of rotines defined in real assembler (ISA) for a family of real microprocessors. This may be a bit slow than specific optmized code, but is really portable as just the primitives must be coded in real assembler and all is done, because dicionary is immutable. 
 
 # Dictionary
  
@@ -55,6 +55,12 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
           the leafs only contain bytecodes,
          
           the twigs only contains address to words.
+ 
+ The leafs are sequences (threads) of real cpu code without any calls or any jumps inside, else at end.
+ 
+ The twigs are sequences of reference address for calls executed in order.
+ 
+ In RiscV cpu opcodes, leafs are equivalent to link and leave, jal and jalr, and twigs to call and return, ;
  
   WARNING: Goal is create a small object code for make a handcraft assembled forth for atmega8
   
@@ -153,6 +159,8 @@ The forth internal variables are static in sram
   NP, UP, CP, LAST, BASE, SPAN, HLD, CONTEXT. CURRENT, HANDLE, TIN,  
 
 # Details
+
+-- In Risc-V, x0 is always zero. --
 
   Most of Forths are created in 1980 decade, for CPUs with few registers and diferent cycles per instructions, and uses a classic virtual model as (under) but uses internal CPU registers extras to scratch and speed.
   
