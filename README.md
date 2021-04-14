@@ -1,27 +1,21 @@
 b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
 # https://github.com/agsb/u2forth.git
 
-## u2forth
+## u2forth.asm
 
-  A forth virtual machine, still in C language, more one.
+  Another forth virtual machine, simple and minimal.
   
   But this one is for use into avr microcontroler ATmega8, 
   with RISC 32 8bit registers [1], Harvard model, 8 MHz internal clock, 
-  4k 16bit words of FLASH, 1k 8bit bytes of SRAM and 512 8bit bytes for EEPROM.
+  8k bytes of FLASH, 1k bytes of SRAM and 512 bytes for EEPROM.
   
   This is a experience in progress, using avr-gcc -mmcu=atmega8 and to make a startup code for avr-as
-  
-  Just only core primitives are composed in C, its just a proof of concept, not a full forth coded in C
 
-  WARNING: This C code makes abusive use of goto LABEL:
-
-  The code is simply a enum, a switch, and many gotos.
-  
   this is a tribute to G. H. Ting, and his books, papers and perseverance.
   
   SURE, this readme needs updates !
   
-  __Not operational yet 11/2020__
+  __Not operational yet 04/2021__
   
   # Goals
  
@@ -31,7 +25,7 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
   
   "Programmers can use trampolined functions to implement tail-recursive function calls in stack-oriented programming languages.[1]"
   
-  u2forth is based in eForth from Dr. Ting, except for
+  u2forth is based in eForth dictionary from Dr. Ting, except for
  
          1. using Indirect Thread Code, to minimize size of all 
          2. using interrupts, to have a live system (**)
@@ -46,27 +40,37 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
  
  (**) not yet;
  
- The forth virtual cpu does bytecodes. the dictionary words can be leafs or twigs, only.
+ # Virtual CPU and uC
+ 
+ A really virtual implementation of a forth CPU implies in NO generic or specific opcodes of any real CPU into dictionary.
+ 
+ No assembler instructions, nor calls, nor jumps, nor returns, not at all.
+ 
+ The forth virtual cpu does opcodes defined by one byte, and executes the code from a indexed table of rotines defined in real assembler for a family of real microprocessors. This may be a bit slow than specific optmized code, but is really portable as just the primitives must be coded in real assembler and all is done, because dicionary is immutable. 
+
+# Dictionary
+ 
+ the dictionary words can be leafs or twigs, only.
          
           the leafs only contain bytecodes,
          
           the twigs only contains address to words.
  
-  WARNING: This C code makes abusive use of goto LABEL:
-  
   WARNING: Goal is create a small object code for make a handcraft assembled forth for atmega8
   
   WARNING: Much code was borrowed from internet, with GPL licence, please help me to get all references. 
 
-# Dictionary
+# 
 
-  Still now, as opcodes (and goto labels) : 
+  Still now, the dictionary will be, in no especific order,
     
-    NOOP=0, THIS, ( doLit )
+    NOOP=0, 
+    
+    THIS, ( literal LIT )
     
     CODE, ( leaf interpreter, the uC )
     
-    NEXT, NEST, UNNEST, ( twig interpreter )
+    NEXT, ENTER, EXIT, ( twig interpreter )
     
     JUMP, JUMPNZ, ( branch, ?branch, )
     
@@ -78,9 +82,11 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
     
     AND, OR, XOR, INV, CPL, SHL, SHR, ( and, or, xor, inverse, negate, 2*, 2/, )
     
-    UMP, ( // UM+ )
+    PLUS, MINUS, MULTIPLY, DIVIDE, ( +, -, *, /, )
     
-    RXQU, RXCU, TXCU, IOSU, ( ?rx, rx@, tx@, io_, // pooled USART ) 
+    UPLUS, UMULTIPLY, ( unsigned )
+    
+    /MOD, UM/MOD, (reminder of division, reminder unsigned division)
     
     DROP2, DUP2, ( 2DROP, 2DUP, as is )
     
@@ -88,15 +94,28 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
     
     CMOVE, CCOMP, MOVE, COMP, ( CMOVE, CCOMPARE, MOVE, COMPARE, moves and compares )
     
-    PAD0, PAD1, TIB0, PSP0, RSP0, ( forth address constants )
+    TICK, COMMA, 
     
-    CELL, FALSE, TRUE, PAD, TIB, BL, (forth values constants )
+    COLON, SEMICOLON, 
     
-    LAST, DP, LASTR, DPR, ( forth address variables in sram )
+    RSP0, PSP0, TIB0, PAD0, PAD1, ( forth address constants)
     
-    ZERO, ONE, SOT, EOT, BS, LF, FF, CR, DLE, CAN, ESC, ( ascii usefull constants ) 
-    // 0, 1, 2, 3, 8, 10, 12, 13, 16, 24, 27, (decimal)
+    CELL, FALSE, TRUE, BL, PADZ, TIBZ (forth values constants )
+    
+    LAST, DP, LASTR, DPR,  ( forth address variables, last and dp for flash, lastr and dpr for sram )
+    
+    STATE, HERE, ( forth variables )
+    
+    ZERO, ONE, TWO, ( usefull values )
+    // 0, 1, 2 (decimal)
+    
+    BS, LF, FF, CR, ESC, ( ascii usefull constants ) 
+    // 8, 10, 12, 13,  27, (decimal)
 
+    RXQU, RXCU, TXCU, IOSU, ( ?rx, rx@, tx@, io_, // pooled USART ) 
+    
+    SETP, GETP, (basic I/O pins)
+    
 # Words
 
 The dictionary of words follow the classic structure, but lives part in FLASH, core imutable, and in SRAM, user temporary. 
@@ -105,13 +124,15 @@ The dictionary of words follow the classic structure, but lives part in FLASH, c
   
   size, size of this word, limited to 31 chars (0x1F), and flags for __IMMEDIATE (0x80), EXCLUSIVE (0x40), HIDDEN (0x20)__;
   
-  word, size characters with pad (maybe);
+  word, size characters with pad byte 0 when size is odd;
   
   opcode, a single byte with opcode for virtual uC, 0 Nop, 1 Leaf, 2 Twig, 3 - 7 reserved, 8 - 254 words coded in assembler
   
   parameters, a set of opcodes (if leaf) or a set of address of words (if twig)
   
-As ATmega8 have only 8k bytes of FLASH then no support for compile new words into FLASH, 
+As ATmega8 have only 8k bytes of FLASH then 
+  still no support for compile new words into FLASH, 
+  still no support for use eeprom,
   sure all goes to SRAM, all goes to void.
 
 # Constants and Variables
@@ -133,7 +154,7 @@ The forth internal variables are static in sram
 
 # Details
 
-  Most of Forths are created in old 80 days, for CPUs with few registers and diferent cycles per instructions, and uses a classic virtual model as (under) but uses internal CPU registers extras to scratch and speed.
+  Most of Forths are created in 1980 decade, for CPUs with few registers and diferent cycles per instructions, and uses a classic virtual model as (under) but uses internal CPU registers extras to scratch and speed.
   
   __IP__    index pointer
   
@@ -147,11 +168,15 @@ The forth internal variables are static in sram
   
   Nowadays, most RISC cpus have at least 32 registers plus Program Counter, Stack Pointer and Status Register, and same cycles per instructions, almost, then to optimize the overhead of memory access, we adopt a virtual model with upto 255 opcodes and registers defined as (under) with ATmega8 registers
  
-  __C__    opcode instruction byte, r00   
+  __C__    temporary opcode instruction byte, r00   
   
   __NIL__  reserved always 0, r01, ( also modern RISC V uses X00 hardwired as ZERO )
   
-  __IP__   instruction index pointer, r30r31 
+  __IP__   instruction index pointer, r30r31 also know as Z register
+  
+  __RSP__  parameter stack pointer index (rsp), r28r29, also know as Y register
+  
+  __PSP__  return stack pointer index (psp), r26r27, also know as X register
   
   __W__    work cell for exchange values, r24r25 
   
@@ -159,11 +184,7 @@ The forth internal variables are static in sram
   
   __TOS__  first cell of parameter stack, r20r21 
   
-  __PSP__  return stack pointer index (psp), r26r27 X
-  
-  __RSP__  parameter stack pointer index (rsp), r28r29 Y
-  
-  SP          Not used, reserved for real cpu and interrupts
+  SP          Not used, reserved for real cpu and interrupts :)
   
   PC          Not used, reserved for real cpu work :)
   
@@ -187,6 +208,11 @@ The forth internal variables are static in sram
    
    __SP__        Stack pointer
 
+#  why do not use SP as forth register ?
+ 
+  All functionality and times of call, return, push and pop, could be make with Z, Y, X at same cpu cycles.
+  Many extern standart library functions uses SP for internal pass-thru registers, then better leave SP for it.
+  In Forth there is no generic SP.
   
 ##  DISCLAIMER:
 /*
