@@ -5,13 +5,15 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
 
   Another forth virtual machine, simple and minimal.
   
-  But this one is for use into avr microcontroler ATmega8, 
+  But this one is for use into AVR microcontroler ATmega8, 
   with RISC 32 8bit registers [1], Harvard model, 8 MHz internal clock, 
   8k bytes of FLASH, 1k bytes of SRAM and 512 bytes for EEPROM.
   
   This is a experience in progress, using avr-gcc -mmcu=atmega8 and to make a startup code for avr-as
 
-  this is a tribute to G. H. Ting, and his books, papers and perseverance.
+  Thanks to Jonasforth, as great essay of how to do a forth.
+  
+  *this is a tribute to G. H. Ting, and his books, papers and perseverance.*
   
   SURE, this readme needs updates !
   
@@ -19,11 +21,11 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
   
   # Goals
  
-  ALL focus in be simple, be smaller and be smart for ATmega8 (ATtiny85 too)
+  All focus in be simple, be smaller and be smart for ATmega8
   
   To self learn about (AVR) RISC assembler, using avr-gcc with "trampolines" and diferent levels of optimzations, to learn howto.
   
-  "Programmers can use trampolined functions to implement tail-recursive function calls in stack-oriented programming languages.[1]"
+  *"Programmers can use trampolined functions to implement tail-recursive function calls in stack-oriented programming languages.[1]"*
   
   u2forth is based in eForth dictionary from Dr. Ting, except for
  
@@ -38,19 +40,21 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
          9. use of poolling I2C, vide 2 (**)
         10. NO checks for ANY words
  
- (**) not yet;
+        ** not yet;
  
  # Virtual CPU and uC
  
- A really virtual implementation of a forth CPU implies in NO specific opcodes of any real CPU into dictionary.
+A really virtual implementation of a forth CPU implies in NO specific opcodes of any real CPU into dictionary.
  
- No assembler instructions, nor calls, nor jumps, nor returns, not at all.
+No assembler instructions, nor calls, nor jumps, nor returns, not at all.
  
- The forth virtual cpu does opcodes defined by one byte, and executes the code from a indexed table of rotines defined in real assembler (ISA) for a family of real microprocessors. This may be a bit slow than specific optmized code, but is really portable as just the primitives must be coded in real assembler and all is done, because dicionary is immutable. 
+The forth virtual cpu does opcodes defined by one byte, and executes the code from a indexed table of rotines defined in real assembler (ISA) for a family of real microprocessors. 
+
+This may be a bit slow than specific optmized code, but is really portable as just the primitives must be coded in real assembler and all is done, because dicionary is immutable. 
 
 # Dictionary
  
- the dictionary words can be leafs or twigs, only.
+**the dictionary words can be leafs or twigs, only.**
          
           the leafs only contain bytecodes,
          
@@ -62,9 +66,9 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
  
  In RiscV cpu opcodes, leafs are equivalent to link and leave, jal and jalr, and twigs to call and return, ;
  
-  WARNING: Goal is create a small object code for make a handcraft assembled forth for atmega8
+ WARNING: Goal is create a small object code for make a handcraft assembled forth for atmega8
   
-  WARNING: Much code was borrowed from internet, with GPL licence, please help me to get all references. 
+ WARNING: Much code was borrowed from internet, with GPL licence, please help me to get all references. 
 
 # 
 
@@ -92,7 +96,7 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
     
     UPLUS, UMULTIPLY, ( unsigned )
     
-    /MOD, UM/MOD, (reminder of division, reminder unsigned division)
+    /MOD, UM/MOD, (reminder of unsigned division, quontient and reminder unsigned division)
     
     DROP2, DUP2, ( 2DROP, 2DUP, as is )
     
@@ -126,41 +130,44 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
 
 The dictionary of words follow the classic structure, but lives part in FLASH, core imutable, and in SRAM, user temporary. 
 
-  link, adress of previous word, as linked list;
+  link, adress of previous word, as linked list, zeros at last one;
   
-  size, size of this word, limited to 31 chars (0x1F), and flags for __IMMEDIATE (0x80), EXCLUSIVE (0x40), HIDDEN (0x20)__;
+  size, number of characters of this word, limited to 31 chars (0x1F), and flags for IMMEDIATE (0x80), EXCLUSIVE (0x40), HIDDEN (0x20);
   
-  word, size characters with pad byte 0 when size is odd;
+  word, the characters, with pad byte 0 when size is odd;
   
   opcode, a single byte with opcode for virtual uC, 0 Nop, 1 Leaf, 2 Twig, 3 - 7 reserved, 8 - 254 words coded in assembler
   
   parameters, a set of opcodes (if leaf) or a set of address of words (if twig)
   
-As ATmega8 have only 8k bytes of FLASH then 
-  still no support for compile new words into FLASH, 
-  still no support for use eeprom,
+As ATmega8 have only 8k bytes of FLASH then: 
+  still no support for compile new words into FLASH;
+  still no support for use eeprom;
   sure all goes to SRAM, all goes to void.
+Sure there are lots of documents showing how to do those, reviews will be done.
 
 # Constants and Variables
 
 Those could be defined in assembler as .EQU for constants and as .DW for variables, 
 but must be pushed at top of parameter stack
 
-The forth internal constants are
+The forth internal constants are flash
 
-  address: PSP0, RSP0, TIB0, PAD0
+  address: PSP0, RSP0, TIB0, PAD0, PAD1, as start of parameter (data) stack, return stack, terminal input buffer, scratch-pads.
   
-  values: CELL, FALSE, TRUE, PAD, TIB, BL, ZERO, ONE, TWO
-  
+  values: CELL, FALSE, TRUE, ZERO, ONE, TWO
+    
   ascii:  \0, \a, \b, \t, \n, \v, \f, \r, \e
  
 The forth internal variables are static in sram
 
-  NP, UP, CP, LAST, BASE, SPAN, HLD, CONTEXT. CURRENT, HANDLE, TIN,  
+  STATE, BASE, HERE, LAST, as compilation or execution state, number system base, where are heap, where is last word.
+  
+  NP, UP, CP, SPAN, HLD, CONTEXT, CURRENT, HANDLE, TIN,  
 
 # Details
 
--- In Risc-V, x0 is always zero. --
+  *In Risc-V, x0 is always zero.*
 
   Most of Forths are created in 1980 decade, for CPUs with few registers and diferent cycles per instructions, and uses a classic virtual model as (under) but uses internal CPU registers extras to scratch and speed.
   
@@ -174,7 +181,7 @@ The forth internal variables are static in sram
   
   __W__     work cell scratch
   
-  Nowadays, most RISC cpus have at least 32 registers plus Program Counter, Stack Pointer and Status Register, and same cycles per instructions, almost, then to optimize the overhead of memory access, we adopt a virtual model with upto 255 opcodes and registers defined as (under) with ATmega8 registers
+  Nowadays, most RISC cpus have at least 32 registers plus Program Counter, Stack Pointer and Status Register, and same cycles per instructions, almost, then to optimize the overhead of memory access, was adopted a virtual model with upto 255 bytes opcodes and registers defined as (under) with ATmega8 registers
  
   __C__    temporary opcode instruction byte, r00   
   
@@ -190,23 +197,23 @@ The forth internal variables are static in sram
   
   __N__    second cell of parameter stack, r22r23 
   
-  __TOS__  first cell of parameter stack, r20r21 
+  __T__  first cell of parameter stack, r20r21 
   
   SP          Not used, reserved for real cpu and interrupts :)
   
   PC          Not used, reserved for real cpu work :)
   
-  ( r2 to r15 are free and can direct accessed with @ and !, it works for Port IOs too. )
-  
+  (r4 to r19 are free and can direct accessed with @ and !, it works for Port IOs too. )
+   
   (r0, r1, r2, r3, are used in internal mul* and fmul* instructions)
   
   and obey avr-gcc header stats:
    
-   __SREG__      Status register at address0x3F
+   __SREG__      Status register at address 0x3F
    
-   __SP_H__      Stack pointer high byte ataddress 0x3E
+   __SP_H__      Stack pointer high byte at address 0x3E
    
-   __SP_L__      Stack pointer low byte ataddress  0x3D
+   __SP_L__      Stack pointer low byte at address 0x3D
    
    __tmp_reg__   Register r0, used for temporary storage
    
@@ -216,9 +223,18 @@ The forth internal variables are static in sram
    
    __SP__        Stack pointer
 
+# Memory Model
+
+@ need reviews:
+
+As the Atmega8 have eeprom, flash and sram. All eeprom goes from $000 to $200, and is read to and write from, sram. All flash goes from $000 to $FFF, with boot sector, NRWW sector and RWW sector. RWW could be rewrited on-the-fly. All sram goes from $000 to $45F, 1120 bytes, first 96 are cpu registers $00 to $20, and I/O registers $00 to $3F, then 1024 free ram. Data Adress Space was to $000 to $05F reserved and $060 to $45F free.
+The boot sector could be 512, 1024 and 2048 bytes.
+The Stack Pointer (SP) must be set to point above 0x60, pushs decrements, pops increments.
+The Program Counter (PC) is 12 bits wide, thus addressing the 4K Program memory locations.
+
 #  why do not use SP as forth register ?
  
-  All functionality and times of call, return, push and pop, could be make with Z, Y, X at same cpu cycles.
+  All functionality and cycles of call, return, push and pop, could be made with Z, Y, X at same cpu cycles.
   Many extern standart library functions uses SP for internal pass-thru registers, then better leave SP for it.
   In Forth there is no generic SP.
   
@@ -249,13 +265,13 @@ The forth internal variables are static in sram
 
 ##  References
 
-        All C. H. Ting books.
+        https://code.google.com/archive/p/subtle-stack/downloads
         
         https://www.forth.com/starting-forth/
         
         http://thinking-forth.sourceforge.net/
         
-        http://www2.ene.unb.br/gaborges/disciplinas/psem/desenvolvimentoATmega8.pdf
-
         https://muforth.nimblemachines.com/threaded-code/
 
+        All C. H. Ting books.
+        
