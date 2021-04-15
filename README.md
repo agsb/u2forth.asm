@@ -142,26 +142,31 @@ As ATmega8 have only 8k bytes of FLASH then:
   still no support for compile new words into FLASH;
   still no support for use eeprom;
   sure all goes to SRAM, all goes to void.
-Sure there are lots of documents showing how to do those, reviews will be done.
+
+Sure, there are lots of documents showing how to do those, including Dr. Ting books, AVR manuals, but reviews will be done.
 
 # Constants and Variables
 
 Those could be defined in assembler as .EQU for constants and as .DW for variables, 
 but must be pushed at top of parameter stack
 
-The forth internal constants are flash
+The forth internal constants are in flash
 
-  address: PSP0, RSP0, TIB0, PAD0, PAD1, as start of parameter (data) stack, return stack, terminal input buffer, scratch-pads.
+  address: PSP0, RSP0, TIB0, PAD0, as start of parameter (data) stack, return stack, terminal input buffer, scratch-pad buffer.
   
-  values: CELL, FALSE, TRUE, ZERO, ONE, TWO
+  values: CELL, FALSE, TRUE, ZERO, ONE, TWO, as 2 bytes, 0 zero, -1, 0, 1, 2
     
-  ascii:  \0, \a, \b, \t, \n, \v, \f, \r, \e
- 
-The forth internal variables are static in sram
-
-  STATE, BASE, HERE, LAST, as compilation or execution state, number system base, where are heap, where is last word.
+  ascii:  space, \b, \n, \r, \e, as ascii codes for whitespace, backspace, new line, carriage return, escape
   
-  NP, UP, CP, SPAN, HLD, CONTEXT, CURRENT, HANDLE, TIN,  
+  ascii:  \, (, ), for comments
+  
+  ascii: ", for strings 
+
+The forth internal variables are in sram
+
+  STATE, BASE, LAST, as compilation or execution state, number system base, where is last word.
+  
+  NP, UP, CP, SPAN, HLD, CONTEXT, CURRENT,   
 
 # Details
 
@@ -179,7 +184,7 @@ The forth internal variables are static in sram
   
   __W__     work cell scratch
   
-  Nowadays, most RISC cpus have at least 32 registers plus Program Counter, Stack Pointer and Status Register, and same cycles per instructions, almost, then to optimize the overhead of memory access, was adopted a virtual model with upto 255 bytes opcodes and registers defined as (under) with ATmega8 registers
+  Nowadays, most RISC cpus have at least 32 registers plus Program Counter, Stack Pointer and Status Register, and same cycles per instructions, almost, then to optimize the overhead of memory access, was adopted a virtual model with upto 255 bytes opcodes and registers defined as (under) with ATmega8 registers.
  
   __C__    temporary opcode instruction byte, r00   
   
@@ -242,13 +247,9 @@ SRAM:
 reminder:
 As the Atmega8 have eeprom, flash and sram. All eeprom goes from $000 to $200, and is read to and write from, sram. All flash goes from $000 to $FFF, with boot sector, NRWW sector and RWW sector. RWW could be rewrited on-the-fly. All sram goes from $000 to $45F, 1120 bytes, first 96 are cpu registers $00 to $20, and I/O registers $00 to $3F, then 1024 free ram. Data Adress Space was to $000 to $05F reserved and $060 to $45F free. The boot sector could be 512, 1024 and 2048 bytes. The Stack Pointer (SP) must be set to point above 0x60, pushs decrements, pops increments. The Program Counter (PC) is 12 bits wide, thus addressing the 4K words of program memory locations in flash.
 
-
-
 #  why do not use SP as forth register ?
  
-  All functionality and cycles of call, return, push and pop, could be made with Z, Y, X at same cpu cycles.
-  Many extern standart library functions uses SP for internal pass-thru registers, then better leave SP for it.
-  In Forth there is no generic SP.
+  In Forth there is no generic SP and all functionality and cycles of call, return, push and pop, could be made with Z, Y, X at same cpu cycles. Many extern standart library functions uses SP for internal pass-thru registers, then better leave SP for it.
   
 ##  DISCLAIMER:
 /*
