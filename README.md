@@ -60,11 +60,11 @@ This may be a bit slow than specific optmized code, but is really portable as ju
          
           the twigs only contains address to words.
  
- The leafs are sequences (threads) of real cpu code without any calls or any jumps inside, else at end.
+ The leafs are sequences (threads) of real cpu code without any calls or any jumps inside, else at end. 
  
- The twigs are sequences of reference address for calls executed in order.
+ The twigs are sequences of reference address for calls executed in order. 
  
- In RiscV cpu opcodes, leafs are equivalent to link and leave, jal and jalr, and twigs to call and return, ;
+ In RiscV cpu opcodes, leafs are equivalent to *link and leave*  and twigs to *call and return* ;
  
  WARNING: Goal is create a small object code for make a handcraft assembled forth for atmega8
   
@@ -96,7 +96,7 @@ This may be a bit slow than specific optmized code, but is really portable as ju
     
     UPLUS, UMULTIPLY, ( unsigned )
     
-    /MOD, UM/MOD, (reminder of unsigned division, quontient and reminder unsigned division)
+    /MOD, UM/MOD, ( reminder of unsigned division, quontient and reminder unsigned division )
     
     DROP2, DUP2, ( 2DROP, 2DUP, as is )
     
@@ -104,24 +104,22 @@ This may be a bit slow than specific optmized code, but is really portable as ju
     
     CMOVE, CCOMP, MOVE, COMP, ( CMOVE, CCOMPARE, MOVE, COMPARE, moves and compares )
     
-    TICK, COMMA, 
+    TICK, COMMA, ( ' and , )
     
     COLON, SEMICOLON, 
     
-    RSP0, PSP0, TIB0, PAD0, PAD1, ( forth address constants)
+    RSP0, PSP0, TIB0, PAD0, PAD1, ( forth address constants )
     
-    CELL, FALSE, TRUE, BL, PADZ, TIBZ (forth values constants )
+    CELL, FALSE, TRUE, PADSZ, TIBSZ ( forth values constants )
+
+    ZERO, ONE, TWO, ( usefull values // 0, 1, 2 in decimal )
     
+    BELL, BS, TAB, LF, FF, CR, ESC, BL ( ascii usefull constants // 7, 8, 9, 10, 12, 13, 27, 32, in decimal )
+
     LAST, DP, LASTR, DPR,  ( forth address variables, last and dp for flash, lastr and dpr for sram )
     
-    STATE, HERE, ( forth variables )
+    STATE, BASE, HERE, ( forth variables )
     
-    ZERO, ONE, TWO, ( usefull values )
-    // 0, 1, 2 (decimal)
-    
-    BS, LF, FF, CR, ESC, ( ascii usefull constants ) 
-    // 8, 10, 12, 13,  27, (decimal)
-
     RXQU, RXCU, TXCU, IOSU, ( ?rx, rx@, tx@, io_, // pooled USART ) 
     
     SETP, GETP, (basic I/O pins)
@@ -185,7 +183,7 @@ The forth internal variables are static in sram
  
   __C__    temporary opcode instruction byte, r00   
   
-  __NIL__  reserved always 0, r01, ( also modern RISC V uses X00 hardwired as ZERO )
+  __NIL__  reserved and always 0, r01, ( also modern RISC V uses X00 hardwired as ZERO )
   
   __IP__   instruction index pointer, r30r31 also know as Z register
   
@@ -205,15 +203,15 @@ The forth internal variables are static in sram
   
   (r4 to r19 are free and can direct accessed with @ and !, it works for Port IOs too. )
    
-  (r0, r1, r2, r3, are used in internal mul* and fmul* instructions)
+  (r0, r1, r2, r3, are used in internal mul* and fmul* instructions, and r1 must explicity set to 0)
   
   and obey avr-gcc header stats:
    
-   __SREG__      Status register at address 0x3F
+   __SREG__      Status register is at address 0x3F
    
-   __SP_H__      Stack pointer high byte at address 0x3E
+   __SP_H__      Stack pointer high byte is at address 0x3E
    
-   __SP_L__      Stack pointer low byte at address 0x3D
+   __SP_L__      Stack pointer low byte is at address 0x3D
    
    __tmp_reg__   Register r0, used for temporary storage
    
@@ -227,10 +225,24 @@ The forth internal variables are static in sram
 
 @ need reviews:
 
-As the Atmega8 have eeprom, flash and sram. All eeprom goes from $000 to $200, and is read to and write from, sram. All flash goes from $000 to $FFF, with boot sector, NRWW sector and RWW sector. RWW could be rewrited on-the-fly. All sram goes from $000 to $45F, 1120 bytes, first 96 are cpu registers $00 to $20, and I/O registers $00 to $3F, then 1024 free ram. Data Adress Space was to $000 to $05F reserved and $060 to $45F free.
-The boot sector could be 512, 1024 and 2048 bytes.
-The Stack Pointer (SP) must be set to point above 0x60, pushs decrements, pops increments.
-The Program Counter (PC) is 12 bits wide, thus addressing the 4K Program memory locations.
+SRAM:
+  
+  0x060 a 0x100, forth variables,
+  
+  584 bytes free
+  
+  0x346 top of PAD, reserved 80 bytes
+  0x396 top of TIB, reserved 80 bytes
+  0x3E6 end of TIB, end of DSP
+  0x40E top of forth DSP stack, reserved 40 bytes.
+  0x436 top of forth RSP stack, reserved 40 bytes.
+  0x45E top of real SP stack, reserved 40 bytes.
+  0x45F reserved for segment resister
+   
+reminder:
+As the Atmega8 have eeprom, flash and sram. All eeprom goes from $000 to $200, and is read to and write from, sram. All flash goes from $000 to $FFF, with boot sector, NRWW sector and RWW sector. RWW could be rewrited on-the-fly. All sram goes from $000 to $45F, 1120 bytes, first 96 are cpu registers $00 to $20, and I/O registers $00 to $3F, then 1024 free ram. Data Adress Space was to $000 to $05F reserved and $060 to $45F free. The boot sector could be 512, 1024 and 2048 bytes. The Stack Pointer (SP) must be set to point above 0x60, pushs decrements, pops increments. The Program Counter (PC) is 12 bits wide, thus addressing the 4K words of program memory locations in flash.
+
+
 
 #  why do not use SP as forth register ?
  
