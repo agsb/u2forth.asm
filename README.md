@@ -74,6 +74,8 @@ This may be a bit slow than specific optmized code, but is really portable as ju
 
   Still now, the dictionary will be, in no especific order,
     
+   _primitives_
+    
     NOOP=0, 
     
     THIS, ( literal LIT )
@@ -104,9 +106,7 @@ This may be a bit slow than specific optmized code, but is really portable as ju
     
     CMOVE, CCOMP, MOVE, COMP, ( CMOVE, CCOMPARE, MOVE, COMPARE, moves and compares )
     
-    TICK, COMMA, ( ' and , )
-    
-    COLON, SEMICOLON, 
+   _constants_
     
     RSP0, PSP0, TIB0, PAD0, PAD1, ( forth address constants )
     
@@ -116,13 +116,29 @@ This may be a bit slow than specific optmized code, but is really portable as ju
     
     BELL, BS, TAB, LF, FF, CR, ESC, BL ( ascii usefull constants // 7, 8, 9, 10, 12, 13, 27, 32, in decimal )
 
-    LAST, DP, LASTR, DPR,  ( forth address variables, last and dp for flash, lastr and dpr for sram )
+  _variables_
+  
+    UP, DP, UPR, DPR,  ( forth address variables, user and dicionary for flash, user and dicitonary for sram )
     
-    STATE, BASE, HERE, ( forth variables )
-    
+    STATE, BASE,   ( forth variables )
+   
+  _system_
+  
     RXQU, RXCU, TXCU, IOSU, ( ?rx, rx@, tx@, io_, // pooled USART ) 
     
     SETP, GETP, (basic I/O pins)
+  
+  _forth_
+  
+    TICK, COMMA, ( ' and , )
+    
+    COLON, SEMICOLON, HERE, LAST, 
+    
+    RESET, BYE, COLD, QUIT, QUERY, EXPECT, PARSE, EVAL, NAME?, NUMBER?, LITERAL, COMPILE, EXECUTE, ABORT,
+  
+    etc
+    
+    (more words ...)
     
 # Words
 
