@@ -29,7 +29,7 @@ b32b6114-2abc-11eb-8261-1be5f55f2874 Thu, 19 Nov 2020 20:12:31 -0300
   
   u2forth is based in eForth dictionary from Dr. Ting, except for
  
-         1. using Indirect Thread Code, to minimize size of all 
+         1. using Indirect Thread Code (?), to minimize size of all 
          2. using interrupts, to have a live system (**)
          3. have a timer in miliseconds, vide 2 (**)
          4. do not use real PC and SP, vide 2
@@ -128,22 +128,22 @@ This may be a bit slow than specific optmized code, but is really portable as ju
 
 The dictionary of words follow the classic structure, but lives part in FLASH, core imutable, and in SRAM, user temporary. 
 
-  link, adress of previous word, as linked list, zeros at last one;
+  *link*, adress of previous word, as linked list, zeros at last one;
   
-  size, number of characters of this word, limited to 31 chars (0x1F), and flags for IMMEDIATE (0x80), EXCLUSIVE (0x40), HIDDEN (0x20);
+  *size*, number of characters of this word, limited to 31 chars (0x1F), and flags for IMMEDIATE (0x80), EXCLUSIVE (0x40), HIDDEN (0x20);
   
-  word, the characters, with pad byte 0 when size is odd;
+  *word*, the characters, with pad byte 0 when size is odd;
   
-  opcode, a single byte with opcode for virtual uC, 0 Nop, 1 Leaf, 2 Twig, 3 - 7 reserved, 8 - 254 words coded in assembler
+  *opcode*, a single byte with opcode for virtual uC, 0 Nop, 1 Leaf, 2 Twig, 3 - 7 reserved, 8 - 254 words coded in assembler
   
-  parameters, a set of opcodes (if leaf) or a set of address of words (if twig)
+  *parameters*, a set of opcodes (if leaf) or a set of address of words (if twig)
   
 As ATmega8 have only 8k bytes of FLASH then: 
   still no support for compile new words into FLASH;
   still no support for use eeprom;
   sure all goes to SRAM, all goes to void.
 
-Sure, there are lots of documents showing how to do those, including Dr. Ting books, AVR manuals, but reviews will be done.
+(Sure, there are lots of documents showing how to do those, including Dr. Ting books, AVR manuals, but reviews will be done.)
 
 # Constants and Variables
 
@@ -166,7 +166,7 @@ The forth internal variables are in sram
 
   STATE, BASE, LAST, as compilation or execution state, number system base, where is last word.
   
-  NP, UP, CP, SPAN, HLD, CONTEXT, CURRENT,   
+  NP, UP, CP, SPAN, HLOD, CONTEXT, CURRENT,   
 
 # Details
 
@@ -186,25 +186,25 @@ The forth internal variables are in sram
   
   Nowadays, most RISC cpus have at least 32 registers plus Program Counter, Stack Pointer and Status Register, and same cycles per instructions, almost, then to optimize the overhead of memory access, was adopted a virtual model with upto 255 bytes opcodes and registers defined as (under) with ATmega8 registers.
  
-  __C__    temporary opcode instruction byte, r00   
+  *_work_*    temporary opcode instruction byte, r00   
   
-  __NIL__  reserved and always 0, r01, ( also modern RISC V uses X00 hardwired as ZERO )
+  *_zero_*  reserved and always 0, r01, ( also modern RISC V uses X00 hardwired as ZERO )
   
-  __IP__   instruction index pointer, r30r31 also know as Z register
+  *ip*      instruction index pointer, r30r31 also know as Z register
   
-  __RSP__  parameter stack pointer index (rsp), r28r29, also know as Y register
+  *psp*     parameter stack pointer index (rsp), r28r29, also know as Y register
   
-  __PSP__  return stack pointer index (psp), r26r27, also know as X register
+  *rsp*     return stack pointer index (psp), r26r27, also know as X register
   
-  __W__    work cell for exchange values, r24r25 
+  *wrk*     work cell for exchange values, r24r25 
   
-  __N__    second cell of parameter stack, r22r23 
+  *nds*     second cell of parameter stack, r22r23 
   
-  __T__  first cell of parameter stack, r20r21 
+  *tos*     first cell of parameter stack, r20r21 
   
-  SP          Not used, reserved for real cpu and interrupts :)
+  SP        Not used, reserved for real cpu and interrupts :)
   
-  PC          Not used, reserved for real cpu work :)
+  PC        Not used, reserved for real cpu work :)
   
   (r4 to r19 are free and can direct accessed with @ and !, it works for Port IOs too. )
    
