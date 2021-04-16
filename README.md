@@ -195,7 +195,7 @@ The forth internal variables are in sram
 
   STATE, BASE, LAST, as compilation or execution state, number system base, where is last word.
   
-  NP, UP, CP, SPAN, HLOD, CONTEXT, CURRENT,   
+  NP, UP, CP, SPAN, HOLD, CONTEXT, CURRENT,   
 
 # Details
 
