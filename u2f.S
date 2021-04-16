@@ -67,7 +67,7 @@ just dont compile by sdt
 ;----------------------------------------------------------------------
 
 22/01/2021
-	maybe include DEFER and IS
+	must include DEFER and IS
 
 12/01/2021
 	moved some documentation to howto.inc
@@ -103,16 +103,16 @@ just dont compile by sdt
 #define         _zero_    r1    
 ; .set _zero_ , r1
 
-; Z instruction pointer for access sram and flas_high memory
+; Z instruction pointer for access sram and flash high memory
 #define         ip_low     r30    
 ;.set	ipl,	r30
 
-; Z instruction pointer for access sram and flas_high memory
+; Z instruction pointer for access sram and flash high memory
 #define         ip_high     r31    
 ;.set	iph,	r31
 
 ; Y return stack pointer for access sram
-#define         rsp_low    r28    
+#define         rsp_low     r28    
 ;.set	rspl,	r28
 
 ; Y return stack pointer for access sram
@@ -120,7 +120,7 @@ just dont compile by sdt
 ;.set	rsph,	r29
 
 ; X parameter stack pointer for access sram
-#define         psp_low    r26    
+#define         psp_low     r26    
 ;.set	pspl,	r26
 
 ; X parameter stack pointer for access sram
@@ -128,7 +128,7 @@ just dont compile by sdt
 ;.set	psph,	r27
 
 ; work registers
-#define         wrk_low    r24    
+#define         wrk_low     r24    
 ;.set	wl,	r24
 
 ; work registers
@@ -136,7 +136,7 @@ just dont compile by sdt
 ;.set	wh,	r25
 
 ; second value parameter stack
-#define         nds_low    r22    
+#define         nds_low     r22    
 ;.set	nl,	r22
 
 ; second value parameter stack
@@ -144,7 +144,7 @@ just dont compile by sdt
 ;.set	nh, r23
 
 ; fist value parameter stack
-#define         tos_low    r20    
+#define         tos_low     r20    
 ;.set	tl,	r20
 
 ; fist value parameter stack
@@ -160,17 +160,19 @@ just dont compile by sdt
         SRAM_END = 0x45F
 
 ;----------------------------------------------------------------------
+; stacks and buffers
+		SPU_SIZE = 40 ; real Stack Pointer, reserved for interrupts and libraries
 ;
-; default sizes forth83
-		SPU_SIZE = 32
-        PSP_SIZE = 64
-		RSP_SIZE = 48
-		TIB_SIZE = 80
-		PAD_SIZE = 84
+; default sizes as forth83 (bytes)
+;
+        PSP_SIZE = 64 ; minimum 32 words
+		RSP_SIZE = 48 ; minimum 24 words
+		TIB_SIZE = 80 ; minimum 80 bytes
+		PAD_SIZE = 84 ; minumum 84 bytes
 
 ;----------------------------------------------------------------------
 ; grows downwards SP = SP - 1
-        SPP_TOP = SRAM_END
+        SPP_TOP = SRAM_END 
         RSP_TOP = SPP_TOP - SPU_SIZE
         PSP_TOP = RSP_TOP - RSP_SIZE
 
@@ -203,7 +205,7 @@ just dont compile by sdt
 ;
 ; default cell size
 ;
-		CELL_SZ = 2
+		CELL_SIZE = 2
 
 ;---------------------------------------------------------------------
 ;
@@ -361,7 +363,9 @@ main:
 
 ;----------------------------------------------------------------------
 ;
-;	timer0 prescale using 64, 
+;	timer0 prescale using 64,  default for 8 MHz
+;
+;   miliseconds
 ;
 ;	count as 61, about 1008,07 Hz
 ;	count as 62, about  992,07 Hz, 
@@ -434,6 +438,7 @@ TIM0_OVF:
 ;----------------------------------------------------------------------
 ;
 ; init instruction pointer and etc
+; from avr manual
 ;
         __SREG__ = 0x3f
         __SP_H__ = 0x3e
@@ -453,6 +458,9 @@ RESET:
         out __SP_H__, wrk_high
         ldi wrk_low, lo8(SPP_TOP)
         out __SP_L__, wrk_low
+; eneble interrupts
+		sei
+		rjmp BYE
 
 ;----------------------------------------------------------------------
 ; init instruction pointer and etc
@@ -460,6 +468,8 @@ LEAF 3, "BYE"
 BYE:
         ; clear tos, sec, wrk
 
+		eor _work_, _work_
+		eor _zero_, _zero_
         eor tos_high, tos_high
         eor tos_low, tos_low
         eor nds_high, nds_high
@@ -540,6 +550,8 @@ TXTO:
 ;
 ; init usart, from avr-gcc public code, io ports as constants
 ;
+;	defaults to 9600, 8N1, no control
+;
 LEAF 3, "IO!"
 IOYO:
         eor wrk_low, wrk_low
@@ -570,6 +582,7 @@ LITL:
 ; get address of a variable ????
 LEAF 4, "doVAR"
 DOVAR:
+		; zzz ?
 		rjmp CORE
 
 ;----------------------------------------------------------------------
@@ -589,7 +602,11 @@ TSTOP:
 ;
 LEAF 7, "?BRANCH"
 QMBRANCH:
-        rcall TSTOP
+;       rcall TSTOP
+        movw wrk_low, tos_low
+        movw tos_low, nds_low
+        pspull nds_low, nds_high
+        sbiw wrk_low, 1
         breq BRANCH
         rjmp CORE
 
@@ -642,19 +659,21 @@ CORE:
 
 ; try  0, 1, 2, 3
 
+; equal to 0 
 		dec r0		
+		brlt CORE	
+; equal to 1 
 		dec r0
-		brlt CORE	; equal to 0 or 1
-		breq ENTER	; equal to 2
+		brlt CORE	
+; equal to 2
 		dec r0
-		breq EXIT	; equal to 3
-		rjmp _CORE
+		brlt ENTER	
+; equal to 3
+		dec r0
+		breq EXIT	
+; greather then 3
+		rjmp _CORE  
 
-;----------------------------------------------------------------------
-TRIDROP:
-; ok drop
-        ; drop arguments
-        adiw xl, 1
 ;----------------------------------------------------------------------
 ; ok 2drop
 LEAF 5, "2DROP"
@@ -758,7 +777,7 @@ RAT:
         pspush nds_low, nds_high
         movw nds_low, tos_low
         rspull tos_low, tos_high
-        sbiw rsp_low, 1
+        ; sbiw rsp_low, 1    zzz
         rjmp CORE
 
 ;----------------------------------------------------------------------
@@ -937,29 +956,41 @@ BITSTOGGLE:
         rjmp AND
 
 ;----------------------------------------------------------------------
-; ?? 0>
+;  ok 0>
 LEAF 2, "0>"
 ZEROGT:
-        rcall TSTOP
-        brlt _ZEROGT1
-        rjmp FFALSE
+;        rcall TSTOP
+        movw wrk_low, tos_low
+        movw tos_low, nds_low
+        pspull nds_low, nds_high
+        sbiw wrk_low, 1
+        brge _ZEROGT1
+        rjmp FTRUE
 _ZEROGT1:
-		rjmp FTRUE
+		rjmp FFALSE
 ;----------------------------------------------------------------------
-; ?? 0<
+;  ok 0<
 LEAF 2, "0<"
 ZEROLT:
-        rcall TSTOP
-        brlt _ZEROLT1
+;        rcall TSTOP
+        movw wrk_low, tos_low
+        movw tos_low, nds_low
+        pspull nds_low, nds_high
+        sbiw wrk_low, 1
+        brge _ZEROLT1
         rjmp FFALSE
 _ZEROLT1:
 		rjmp FTRUE
 
 ;----------------------------------------------------------------------
-; ?? 30=
+; ok 0=
 LEAF 2, "0="
 ZEROEQ:
-        rcall TSTOP
+;        rcall TSTOP
+        movw wrk_low, tos_low
+        movw tos_low, nds_low
+        pspull nds_low, nds_high
+        sbiw wrk_low, 1
         breq _ZEROEQ1
         rjmp FFALSE
 _ZEROEQ1:
@@ -1012,9 +1043,9 @@ LTHAN:
         sub nds_low, tos_low
         sbc nds_high, tos_high
         brlt _LTHAN1
-        rjmp FFALSE
-_LTHAN1:
 		rjmp FTRUE
+_LTHAN1:
+        rjmp FFALSE
 
 ;----------------------------------------------------------------------
 ; >
@@ -1033,7 +1064,7 @@ LEAF 1, "="
 EQUAL:
         sub nds_low, tos_low
         sbc nds_high, tos_high
-        brge _EQUAL1
+        breq _EQUAL1
         rjmp FFALSE
 _EQUAL1:
 		rjmp FTRUE
@@ -1090,38 +1121,48 @@ LEAF 5, "CMOVE"
 CMOVE:
         ; WARNING No bound check
         ; tos source
-        ; n destination
-        ; w 1 or many, 0 does nothing
+        ; nds destination
+        ; w   1 or many, 0 does nothing
+
+;	source exchange tos to psp (Y)
+
+		movw wrk_low, tos_low
+		movw tos_low, psp_low
+		movw psp_low, wrk_low
+
+;	destination exchange nds and rsp (X)
+
+		movw wrk_low, nds_low
+		movw nds_low, rsp_low
+		movw rsp_low, wrk_low
 
         ; get the counter
         pspull wrk_low, wrk_high
-
-        ; preserve psp into rsp
-        rspush psp_low, psp_high
 
         ; no offset
 
 _CMOVE1:
         ; decrease counter
+
         sbiw wrk_low, 1
         brlt _CMOVE2
 
-        ; read a byte
-        movw xl, tos_low
-        ld _work_, X+
-        movw tos_low, xl
-
-        ; write a byte
-        movw xl, nds_low
-        st X+, r0
-        movw nds_low, xl
+        ; move a byte
+        ld _work_, Y+
+        st X+, _work_
 
         ; again
         rjmp _CMOVE1
 
 _CMOVE2:
-        ; restore psp from rsp
-        rspull psp_low, psp_high
+
+		movw psp_low, tos_low
+		movw rsp_low, nds_low
+
+        rspull tos_low, tos_high
+        rspull nds_low, nds_high
+
+		rjmp  CORE
 
 ;----------------------------------------------------------------------
 ; CMOVE> copy from source+w to destination+w, decrease w
@@ -1129,24 +1170,33 @@ LEAF 5, "CMOVE>"
 CMOVEGT:
         ; WARNING No bound check
         ; tos source
-        ; n destination
+        ; nds destination
         ; w 1 or many, 0 does nothing
+
+;	source exchange tos and psp (Y)
+
+		movw wrk_low, tos_low
+		movw tos_low, psp_low
+		movw psp_low, wrk_low
+
+;	destination exchange nds and rsp (X)
+
+		movw wrk_low, nds_low
+		movw nds_low, rsp_low
+		movw rsp_low, wrk_low
 
         ; get the counter
         pspull wrk_low, wrk_high
-
-        ; preserve psp into rsp
-        rspush psp_low, psp_high
 
         ; offset predecrements
 
         adiw wrk_low, 1
 
-        add tos_low, wrk_low
-        adc tos_high, wrk_high
+        add psp_low, wrk_low
+        adc psp_high, wrk_high
 
-        add nds_low, wrk_low
-        adc nds_high, wrk_high
+        add rsp_low, wrk_low
+        adc rsp_high, wrk_high
 
         sbiw wrk_low, 1
 
@@ -1155,24 +1205,22 @@ _CMOVEGT1:
         sbiw wrk_low, 1
         brlt _CMOVEGT2
 
-        ; read a byte
-        movw xl, tos_low
-        ld _work_, -X
-        movw tos_low, xl
-
-        ; write a byte
-        movw xl, nds_low
-        st -X, r0
-        movw nds_low, xl
+        ; move a byte
+        ld _work_, -Y
+        st -X, _work_
 
         ; again
         rjmp _CMOVEGT1
 
 _CMOVEGT2:
-        ; restore psp from rsp
-        rspull psp_low, psp_high
 
-        rjmp TRIDROP
+		movw psp_low, tos_low
+		movw rsp_low, nds_low
+
+        rspull tos_low, tos_high
+        rspull nds_low, nds_high
+
+		rjmp  CORE
 
 ;----------------------------------------------------------------------
 ;
@@ -1194,7 +1242,7 @@ ALLIGN:
 ;
 LEAF 2, "CELL"
 CELLSZ:
-        ldi wrk_low, CELL_SZ
+        ldi wrk_low, CELL_SIZE
         eor wrk_high, wrk_high
         rjmp PUSHS
 
@@ -1208,24 +1256,24 @@ CELLS:
 
 ;----------------------------------------------------------------------
 ;
-; ok add CELL_SZ
+; ok add CELL_SIZE
 ;
 LEAF 5, "CELL+"
 CELLPLUS:
         movw wrk_low, tos_low
-        adiw wrk_low, CELL_SZ
+        adiw wrk_low, CELL_SIZE
         movw tos_low, wrk_low
         rjmp CORE
 
 ;----------------------------------------------------------------------
 ;
-; ok sub CELL_SZ
+; ok sub CELL_SIZE
 ;
 LEAF 5, "CELL-"
 CELLMINUS:
-        rol nds_high
-        rol tos_low
-        rol tos_high
+        movw wrk_low, tos_low
+        sbiw wrk_low, CELL_SIZE
+        movw tos_low, wrk_low
         rjmp CORE
 
 ;----------------------------------------------------------------------
