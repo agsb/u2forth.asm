@@ -54,33 +54,38 @@ This may be a bit slow than specific optmized code, but is really portable as ju
 
 # Dictionary
  
-**the dictionary words can be leafs or twigs, only.**
+**A dictionary word can be a leaf or a twig, only.**
          
-          the leafs only contain bytecodes,
+          A leaf only contain bytecodes,
          
-          the twigs only contains address to words.
+          A twig only contains address to words.
  
- The leafs are sequences (threads) of real cpu code without any calls or any jumps inside, else at end. 
+ The leafs (leaves) are sequences (threads) of real cpu code without any calls or any jumps inside, else at end. 
  
  The twigs are sequences of reference address for calls executed in order. 
  
  In RiscV cpu opcodes, leafs are equivalent to *link and leave*  and twigs to *call and return* ;
  
- WARNING: Goal is create a small object code for make a handcraft assembled forth for atmega8
+ Goal is create a small object code for make a basis for handcraft assembled forth for atmega8
   
- WARNING: Much code was borrowed from internet, with GPL licence, please help me to get all references. 
+ Much code was borrowed from internet, with GPL licence, please help me to get all references. 
 
+WARRING: 
+I know about use of leaf/leaves. I use it as when a common noun becomes a proper noun, the rules for irregular pluralization no longer apply. No one tell I brought two Mickey Mice at Disney.
+ 
 # 
 
-  Still now, the dictionary will be, in no especific order,
-    
+  Still now, the dictionary will be, in no especific order, names for assembler mnemonics.
+  
+  *leaves*
+  
    _primitives_
     
     NOOP=0, 
     
-    THIS, ( literal LIT )
+    THIS, ( literal )
     
-    CODE, ( leaf interpreter, the uC )
+    CORE, ( leaf interpreter, the uC )
     
     NEXT, ENTER, EXIT, ( twig interpreter )
     
@@ -96,15 +101,17 @@ This may be a bit slow than specific optmized code, but is really portable as ju
     
     PLUS, MINUS, MULTIPLY, DIVIDE, ( +, -, *, /, )
     
-    UPLUS, UMULTIPLY, ( unsigned )
+    UPLUS, UMULTIPLY, ( unsigned operations )
     
-    /MOD, UM/MOD, ( reminder of unsigned division, quontient and reminder unsigned division )
+    UMOD, UMMOD, ( reminder of unsigned division, quontient and reminder unsigned division )
     
     DROP2, DUP2, ( 2DROP, 2DUP, as is )
     
     CSTORE, CFETCH, STORE, FETCH, ( C!, C@, !, @, )
     
     CMOVE, CCOMP, MOVE, COMP, ( CMOVE, CCOMPARE, MOVE, COMPARE, moves and compares )
+    
+    DOLIT, DOCON, DOVAR,
     
    _constants_
     
@@ -128,15 +135,21 @@ This may be a bit slow than specific optmized code, but is really portable as ju
     
     SETP, GETP, (basic I/O pins)
   
+  *twigs*
+  
   _forth_
   
     TICK, COMMA, ( ' and , )
     
-    COLON, SEMICOLON, HERE, LAST, 
+    COLON, SEMICOLON, HERE, LAST, FIND, [, ], EMIT, KEY, TYPE, .", CONTEXT, CURRENT, 
+    
+    IF, ELSE, THEN, WHILE, UNTIL, REPEAT, FOR, NEXT, 
     
     RESET, BYE, COLD, QUIT, QUERY, EXPECT, PARSE, EVAL, NAME?, NUMBER?, LITERAL, COMPILE, EXECUTE, ABORT,
   
     etc
+    
+    CREATE, DOES>, POSTONE, DEFER, IS, 
     
     (more words ...)
     
