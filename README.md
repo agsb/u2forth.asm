@@ -110,6 +110,8 @@ I know about use of leaf/leaves. I use it as when a common noun becomes a proper
     CSTORE, CFETCH, STORE, FETCH, ( C!, C@, !, @, )
     
     CMOVE, CCOMP, MOVE, COMP, ( CMOVE, CCOMPARE, MOVE, COMPARE, moves and compares )
+ 
+    ALIGN, CELL, CELLS, CELL+, CELLS-, RAND, 
     
     DOLIT, DOCON, DOVAR,
     
@@ -119,7 +121,7 @@ I know about use of leaf/leaves. I use it as when a common noun becomes a proper
     
     CELL, FALSE, TRUE, PADSZ, TIBSZ ( forth values constants )
 
-    ZERO, ONE, TWO, ( usefull values // 0, 1, 2 in decimal )
+    NIL, ONE, TWO, ( usefull values // 0, 1, 2 in decimal )
     
     BELL, BS, TAB, LF, FF, CR, ESC, BL ( ascii usefull constants // 7, 8, 9, 10, 12, 13, 27, 32, in decimal )
 
@@ -153,6 +155,33 @@ I know about use of leaf/leaves. I use it as when a common noun becomes a proper
     
     (more words ...)
     
+ Notes:
+    
+ sugestion for convention for translate forth names to assembler names
+
+    use LE for <=
+    use GT for >=
+    use NE for <>
+    use LT for <
+    use GT for >
+    use EQ for =
+ 
+    use MUL for *
+    use DIV for /
+    use PLUS for +
+    use MINUS for -
+
+    use BY for /
+    use QM for ?
+    use AT for @
+    use TO for !
+    use TK for '
+    use CM for ,
+ 
+    use NIL for 0
+    use ONE for 1
+    use TWO for 2
+
 # Words
 
 The dictionary of words follow the classic structure, but lives part in FLASH, core imutable, and in SRAM, user temporary. 
@@ -183,7 +212,7 @@ The forth internal constants are in flash
 
   address: PSP0, RSP0, TIB0, PAD0, as start of parameter (data) stack, return stack, terminal input buffer, scratch-pad buffer.
   
-  values: CELL, FALSE, TRUE, ZERO, ONE, TWO, as 2 bytes, 0 zero, -1, 0, 1, 2
+  values: CELL, FALSE, TRUE, NIL, ONE, TWO, as 2 bytes, 0 zero, -1, 0, 1, 2
     
   ascii:  space, \b, \n, \r, \e, as ascii codes for whitespace, backspace, new line, carriage return, escape
   
