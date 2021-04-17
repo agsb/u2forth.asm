@@ -1,5 +1,4 @@
 
-
 **Some thoughts and notes for u2forth.asm in a atmega8, a list in no particular order, needs revisions, still a work in progress, things can change, use as you please and at own risk, with no warranty any.**
 
 0. "The most popular architectures used to implement Forth have had byte-addressed memory, 16-bit operations, and two's-complement number representation." https://www.taygeta.com/forth/dpanse.htm as ANSI X3.215-1994
@@ -93,3 +92,45 @@
 
 17. try use r19:r18 as return register for emulate riscV jal and jalr, single instruction to jump and save return address, jump and link in leaf ?
                 
+18. In Cortex M4, esp32, Dr. C.H.Ting uses a optimal aprouach for forth engine, but with specific ISA inside dictionary.
+
+        _next:    BX LR                 ; branch to ptr in LR, link register
+        _nest:    STMFD R2!, {LR}       ; push LR into return stack
+        _unnest:  LDMFD R2!, {PC}       ; pull PC from return stack
+        BL ptr                          ; branch and link, ( mov LR ptr, inc LR, inc LR, jmp ptr)
+        
+        and dictionary parameters fields made as:
+        
+        leaf ==> instr, instr, instr, instr, _next
+        twig ==> _nest, BL ptr, BL ptr, BL ptr _unest
+        
+19. In ATMEGA8, those can be made with
+        ; (instruction) pointer Z is r31:r30, 
+        ; (parameter stack) pointer Y is r29:r28, 
+        ; (return stack) pointer X is r27:r26,
+        ; (reference) pointer using r19:r18 
+        
+        _BL:   ld r24, Z+       ; load indirect
+               ld r25, Z+       ; load lindirect
+               movw r18, r30    ; preserve return
+               movw r30, r24    ; prepare reference to jump
+               ijmp             ; jump immediate
+               
+        _BXLR: 
+               movw r30, r18    ; restore return
+               ijmp             ; jump immediate
+               
+        _nest: 
+               ld r24, Z+       ; load indirect
+               ld r25, Z+       ; load indirect
+               st -X, r18       ; push return
+               st -X, r19       ; push return
+               movw r30, r24    ; prepare reference to jump
+               ijmp             ; jump immediate
+               
+        _unnest:
+               ld r31, X+       ; pull return
+               ld r30, X+       ; pull  return
+               ijmp             ; jump immediate
+               
+        
