@@ -1,9 +1,6 @@
 
-# 
-# Some thoughts and notes for u2forth.asm in a atmega8
-# needs revisions, is a work in progress, all can changes
-# use as you please and at own risk, with no warranty any.
-# no particular order, 
+
+**Some thoughts and notes for u2forth.asm in a atmega8, a list in no particular order, needs revisions, still a work in progress, things can change, use as you please and at own risk, with no warranty any.**
 
 0. "The most popular architectures used to implement Forth have had byte-addressed memory, 16-bit operations, and two's-complement number representation." https://www.taygeta.com/forth/dpanse.htm as ANSI X3.215-1994
 
@@ -28,34 +25,38 @@
         r29:r28 psp parameter stack, as Y
         r31:r30 ipp instruction pointer, as Z, ever points to an address.
 
-5. Using explict TOS, NDS, WRK is more convenient. 
+5. why using explict TOS, NDS, WRK is more convenient ? 
     
-    macro push uses 4 cycles, (2 for each 8bit register)
-    macro pull uses 4 cycles, (2 for each 8bit register)
-    instr sbiw uses 2 cycles
-    instr adiw uses 2 cycles
-    instr movw uses 1 cycle
-    instr oper uses 1 cycle
+        macro push uses 4 cycles, (2 for each 8bit register)
+        macro pull uses 4 cycles, (2 for each 8bit register)
+        instr sbiw uses 2 cycles
+        instr adiw uses 2 cycles
+        instr movw uses 1 cycle
+        instr oper uses 1 cycle
     
-    with pre loaded T, N 
-         push into psp (6): push N, movw N T, movw T W,
-         pull from psp (5): movw T N, pull N
-         one argument (1): oper (T)
-         two argument (5): oper (T N ), pull N
-         three argument (9): pull W, oper (T N W), pull N
+    with pre loaded T, N, oper results in T 
+     
+        push into psp (6): push N, movw N T, movw T W,
+        pull from psp (5): movw T N, pull N
+        one argument (1): oper (T)
+        two argument (5): oper (T N ), pull N
+        three argument (9): pull W, oper (T N W), pull N
          
-    without       
-         push into psp (4): push W
-         pull from psp (4): pull W
-         one argument (9): pull T, oper (T), push T
-         two argument (13): pull T, pull N, oper (T N), push T
-         three argument (17): pull T, pull N, pull W, oper (T N W), push T
+    without and oper results in T      
+        
+        push into psp (4): push W
+        pull from psp (4): pull W
+        one argument (9): pull T, oper (T), push T
+        two argument (13): pull T, pull N, oper (T N), push T
+        three argument (17): pull T, pull N, pull W, oper (T N W), push T
             
-6. Use also 12 bit pc program counter, 16 bit sp stack pointer, 8 bit alu aritmetic logic unit, 8 bit status register.
+     yes, and more simple and more eficient.
+     
+6. Also uses 12 bit pc program counter, 16 bit sp stack pointer, 8 bit alu aritmetic logic unit, 8 bit status register.
   
 7. all primitives are coded in assembler of a specif family of CPU or uC, and  must end with ????zzz
 
-8. u2forth concept a real VM then no assembler is allowed inside dictionary
+8. when forth concept is to be a real VM then no assembler is allowed inside dictionary, except for primitives.
   
 9. for standart forth-2012 all public WORDS are in uppercase, so all user WORDS will be in upppercase too;
   
