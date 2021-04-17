@@ -1,0 +1,30 @@
+http://www.forth.org/fd/FD-V13N6.pdf
+
+: BRANCH R> DUP + CELL+ >R ; 
+: ?BRANCH 0= R> SWAP OVER @ AND + CELL+ >R ;
+
+: BRANCH ( -- ) R> @ >R ; 
+: OBRANCH ( n -- ) O= R @ CELL - R - AND R> + CELL + >R ;
+
+: EXECUTE ( tick -- ) >R ; ( not that portable though! ) 
+: ROT ( a \ b \ c -- b \ c \ a ) >R SWAP R> SWAP ; ( ==== Inner Interpreters ==== ) 
+: (VAR) ( -- addr ) R> ; 
+: (CONST) ( -- n ) R> @ ; 
+: (NEXT) ( -- ) R> R> ?DUP IF 1 - >R @ ELSE CELL + ENDIF >R ; 
+: LIT ( -- n ) R> @+ >R ; 
+: (DO) ( limit \ index -- ) SWAP R> SWAP >R SWAP >R >R ; 
+: (LOOP) ( -- ) R> R> 1 + DUP R < IF >R DUP @ + ELSE R> 2DROP CELL + ENDIF >R ; 
+: (+LOOP) ( n -- ) R> SWAP DUP R> + SWAP O< OVER R < XOR IF >R DUP @ + ELSE R> 2DROP CELL + ENDIF >R ; ( ==== Comparisons via divide and conquer ==== ) 
+: < ( n \ m -- flag ) 2DUP XOR O< IF DROP ELSE - ENDIF O< ; 
+: > ( n \ m -- flag ) 2DUP XOR O< IF NIP ELSE SWAP - ENDIF O< ; 
+: U< ( n \ m -- flag ) 2DUP XOR O< IF NIP ELSE - ENDIF O< ; 
+: U> ( n \ m -- flag ) 2DUP XOR O< IF DROP ELSE SWAP - ENDIF O< ; 
+\ For the really esoteric
+: ( ==== Unsigned multiplication and division ==== 1 
+: quot< (n\q--q) 2*OR; 
+: rem<m ( r \ m -- r ) 0< 1 AND SWAP 2* OR ; 
+: div? ( n \ r -- n \ ?rn- \ f ) OVER - DUP O< IF OVER + 0 ELSE 1 ENDIF ; 
+: /MOD (m\ n -- r \ q) SWAP 0 OVER rem<m SWAP 2* (n \ r \ m/q) F FOR >R div? SWAP R rem<m SWAP R> quot< NEXT >R div? >R NIP R> R> quot< ; 
+: / ( n \ m -- quot ) /MOD NIP ; 
+: MOD ( n \ m -- rem ) /MOD DROP ; 
+: * ( n \ m -- nm* ) ( unsigned ) 0 SWAP F FOR DUP >R O< IF OVER + ENDIF 2* R> 2* NEXT O< IF + ELSE NIP ENDIF ; 

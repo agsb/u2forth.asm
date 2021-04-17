@@ -1,0 +1,81 @@
+u2f.o: In function `VARIABLE':
+(.data+0x50): undefined reference to `CREATE'
+u2f.o: In function `VARIABLE':
+(.data+0x52): undefined reference to `LITERAL'
+u2f.o: In function `ALLOT':
+(.data+0x64): undefined reference to `LITERAL'
+u2f.o: In function `HERE':
+(.data+0x76): undefined reference to `LITERAL'
+u2f.o: In function `PAD':
+(.data+0x88): undefined reference to `LITERAL'
+u2f.o: In function `PAD':
+(.data+0x8a): undefined reference to `BUFFER_SIZE'
+u2f.o: In function `IMMEDIATEQM':
+(.data+0xf0): undefined reference to `LITERAL'
+u2f.o: In function `COMPILEQM':
+(.data+0x10c): undefined reference to `LITERAL'
+u2f.o: In function `HIDDEN':
+(.data+0x126): undefined reference to `LITERAL'
+u2f.o: In function `ISEXEC':
+(.data+0x184): undefined reference to `LITERAL'
+u2f.o: In function `ISCOMP':
+(.data+0x194): undefined reference to `LITERAL'
+u2f.o:(.data+0x1a6): more undefined references to `LITERAL' follow
+u2f.o: In function `BDIGS':
+(.data+0x210): undefined reference to `IMMEDIATE'
+u2f.o: In function `BDIGS':
+(.data+0x21c): undefined reference to `IMMEDIATE'
+u2f.o: In function `BDIGS':
+(.data+0x21e): undefined reference to `POSTPONE'
+u2f.o: In function `BDIGS':
+(.data+0x220): undefined reference to `TWOTOR'
+u2f.o: In function `COLON':
+(.data+0x22e): undefined reference to `BEGIN'
+u2f.o: In function `COLON':
+(.data+0x232): undefined reference to `FIND'
+u2f.o: In function `COLON':
+(.data+0x236): undefined reference to `IF'
+u2f.o: In function `COLON':
+(.data+0x23c): undefined reference to `IF'
+u2f.o: In function `COLON':
+(.data+0x23e): undefined reference to `EXECUTE'
+u2f.o: In function `COLON':
+(.data+0x240): undefined reference to `STACKQ'
+u2f.o: In function `COLON':
+(.data+0x242): undefined reference to `ABORTQT'
+u2f.o: In function `COLON':
+(.data+0x252): undefined reference to `ELSE'
+u2f.o: In function `COLON':
+(.data+0x256): undefined reference to `THEN'
+u2f.o: In function `COLON':
+(.data+0x258): undefined reference to `ELSE'
+u2f.o: In function `COLON':
+(.data+0x262): undefined reference to `POSTPONE'
+u2f.o: In function `COLON':
+(.data+0x266): undefined reference to `REVEAL'
+u2f.o: In function `COLON':
+(.data+0x268): undefined reference to `POSTPONE'
+u2f.o: In function `COLON':
+(.data+0x26a): undefined reference to `OPENCOL'
+u2f.o: In function `CATCH':
+(.data+0x278): undefined reference to `SPAT'
+u2f.o: In function `CATCH':
+(.data+0x282): undefined reference to `RPAT'
+u2f.o: In function `CATCH':
+(.data+0x288): undefined reference to `EXECUTE'
+u2f.o: In function `THROW':
+(.data+0x2b4): undefined reference to `SPTO'
+u2f.o: In function `TICK':
+(.data+0x2c2): undefined reference to `TOKEN'
+u2f.o: In function `TICK':
+(.data+0x2c4): undefined reference to `NAMEQ'
+u2f.o: In function `COMPILEMD':
+(.data+0x314): undefined reference to `CREATE'
+u2f.o: In function `COMPILEMD':
+(.data+0x318): undefined reference to `DOES'
+u2f.o: In function `COMPILEMD':
+(.data+0x32c): undefined reference to `CREATE'
+u2f.o: In function `COMPILEMD':
+(.data+0x32e): undefined reference to `LITERAL'
+collect2: error: ld returned 1 exit status
+make: *** [Makefile:370: u2f.elf] Error 1
