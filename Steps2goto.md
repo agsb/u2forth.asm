@@ -5,7 +5,7 @@
 
 1. For a ATMEGA8, a forth CELL is 2 bytes, or 16 bits;
 
-2. The instructions adiw and sbiw, only works in r25:r24,r27:r26,r29:r28,r31:r30;
+2. The instructions adiw and sbiw, only works in r25:r24, r27:r26, r29:r28, r31:r30;
 
 3. Used as  8 bits registers: 
 
@@ -79,6 +79,7 @@
     Dolit,
     Docon,
     Dovar,
+    Dovoc,
     
 14. traditional eForth $NEXT is Next, $NEST or $DOCOL or $ENTER is Enter, $UNNEST is Exit, BRANCH is Jump, ?BRANCH is Jumpz, those words are never used by user, only by forth engine.
   
@@ -90,9 +91,9 @@
         DEFER creates a dictionary entry with a fake CFA
         IS pushes a CFA of a defined word into a CFA of a deffered word
 
-17. try use r19:r18 as return register for emulate riscV jal and jalr, single instruction to jump and save return address, jump and link in leaf ?
+17. Try use r19:r18 as return register for emulate riscV jal and jalr, single instruction to jump and save return address, jump and link in leaf ?
                 
-18. In Cortex M4, esp32, Dr. C.H.Ting uses a optimal aprouach for forth engine, but with specific ISA inside dictionary.
+18. In Cortex M4, esp32, Dr. C.H.Ting uses a optimal aprouach for forth engine, but with those specific ISA inside dictionary.
 
         _next:    BX LR                 ; branch to ptr in LR, link register
         _nest:    STMFD R2!, {LR}       ; push LR into return stack
@@ -108,29 +109,39 @@
         ; (instruction) pointer Z is r31:r30, 
         ; (parameter stack) pointer Y is r29:r28, 
         ; (return stack) pointer X is r27:r26,
-        ; (reference) pointer using r19:r18 
+         ; (reference) pointer using r19:r18 
         
-        _BL:   ld r24, Z+       ; load indirect
-               ld r25, Z+       ; load lindirect
-               movw r18, r30    ; preserve return
-               movw r30, r24    ; prepare reference to jump
-               ijmp             ; jump immediate
+        _enter: ; same as BL  
+                ld r24, Z+       ; load indirect
+                ld r25, Z+       ; load indirect
+                movw r18, r30    ; preserve return
+                movw r30, r24    ; prepare reference to jump
+                ijmp             ; jump immediate
                
-        _BXLR: 
-               movw r30, r18    ; restore return
-               ijmp             ; jump immediate
+        _exit: ; same as BX LR
+                movw r30, r18    ; restore return
+                ijmp             ; jump immediate
                
-        _nest: 
-               ld r24, Z+       ; load indirect
-               ld r25, Z+       ; load indirect
-               st -X, r18       ; push return
-               st -X, r19       ; push return
-               movw r30, r24    ; prepare reference to jump
-               ijmp             ; jump immediate
+        _nest: ; same as STLPM Rn!, {LR}
+                ld r24, Z+       ; load indirect
+                ld r25, Z+       ; load indirect
+                st -X, r18       ; push return
+                st -X, r19       ; push return
+                movw r30, r24    ; prepare reference to jump
+                ijmp             ; jump immediate
                
-        _unnest:
-               ld r31, X+       ; pull return
-               ld r30, X+       ; pull  return
-               ijmp             ; jump immediate
+        _unnest: sme as LDLPM Rn!, {PC}
+                ld r31, X+       ; pull return
+                ld r30, X+       ; pull return
+                ijmp             ; jump immediate
                
-        
+        but how decide what to do with any word ?
+                
+                primitive: instr, instr, ... instr, macro_exit
+                
+                leaf:   ptr_enter, primitive_ptr, ????
+                
+                twig:   ptr_nest, ptr, ptr, ptr, ... ptr, ptr_unnest
+                
+         need decide names.       
+                
